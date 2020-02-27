@@ -1,6 +1,7 @@
 package org.bjartek.webfluxrefapp
 
 import com.fasterxml.jackson.databind.JsonNode
+import io.micrometer.core.instrument.Gauge
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.MultiGauge
 import io.micrometer.core.instrument.Tags
@@ -79,13 +80,11 @@ class WebfluxRefappApplication {
     @Bean
     fun healthRegistrySingleHealthCustomizer(healthRegistry: HealthContributorRegistry): MeterRegistryCustomizer<MeterRegistry>? {
         return MeterRegistryCustomizer { registry: MeterRegistry ->
-
-            registry.gauge("health", emptyList(), healthRegistry,
-                ToDoubleFunction { health ->
+            Gauge.builder("health",healthRegistry, { health ->
                     val status = health.findAllStatuses().aggregateStatus()
-                    statuses[status.code] ?: 4.0
-                }
-            )
+                    statuses[status.code] ?: 4.0 })
+                .description("Aggregated status for all health checks. Value is modeled after unix exit codes. 0=OK, the higher the more servere.")
+                .register(registry)
         }
     }
 
@@ -95,7 +94,7 @@ class WebfluxRefappApplication {
 
             val healIndicators = healthRegistry.findAllHealthIndicatorNames()
 
-            val healthGauge = MultiGauge.builder("health_indicator").register(registry)
+            val healthGauge = MultiGauge.builder("health_indicator").description("Status of a individual health check. Value is modeled after unix exit codes. 0=ok, the higher the number the more severe").register(registry)
             healthGauge.register(healIndicators.map {
 
                 val t: Tags = Tags.of("name", it)
