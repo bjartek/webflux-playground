@@ -7,7 +7,7 @@ plugins {
 	kotlin("plugin.spring") version "1.3.61"
 }
 
-group = "org.bjartek"
+group = "org.bjartek.webfluxrefapp"
 version = "0.0.1-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_11
 
@@ -33,7 +33,7 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
-	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.3.3")
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j")
 
 	implementation("org.springframework.cloud:spring-cloud-starter-sleuth")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
