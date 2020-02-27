@@ -19,9 +19,14 @@ import org.springframework.boot.actuate.health.NamedContributors
 import org.springframework.boot.actuate.health.SimpleStatusAggregator
 import org.springframework.boot.actuate.health.Status
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.env.YamlPropertySourceLoader
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.PropertySource
+import org.springframework.core.io.support.DefaultPropertySourceFactory
+import org.springframework.core.io.support.EncodedResource
 import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.GetMapping
@@ -32,7 +37,7 @@ import org.springframework.web.reactive.function.client.ExchangeFilterFunction
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
-import java.util.function.ToDoubleFunction
+import java.util.StringJoiner
 
 @Component
 class Test2: HealthIndicator {
@@ -44,7 +49,7 @@ class Test2: HealthIndicator {
 @Component
 class Test: HealthIndicator {
     override fun health(): Health {
-        return Health.outOfService().withDetail("Foo", "bar").build()
+        return Health.status("OBSERVE").withDetail("Foo", "bar").build()
     }
 }
 
@@ -71,12 +76,17 @@ class Foo(val t:Test, val t2:Test2): CompositeHealthContributor {
 }
 
 
-val statuses = mapOf("UP" to 0.0, "DOWN" to 3.0, "OUT_OF_ORDER" to 2.0)
-
-
 @SpringBootApplication
 @Configuration
-class WebfluxRefappApplication {
+@PropertySource("classpath:baseproperties.yml", factory = YamlPropertyLoaderFactory::class)
+class WebfluxRefappApplication(
+    @Value("\${management.endpoint.health.status.order:DOWN, OUT_OF_SERVICE, FATAL, UNKNOWN, UP}") val order:String
+) {
+
+    val statuses: Map<String, Double> = order.split(", ").reversed().mapIndexed { index, s ->
+        s to index.toDouble()
+    }.toMap()
+
     @Bean
     fun healthRegistrySingleHealthCustomizer(healthRegistry: HealthContributorRegistry): MeterRegistryCustomizer<MeterRegistry>? {
         return MeterRegistryCustomizer { registry: MeterRegistry ->
@@ -94,13 +104,15 @@ class WebfluxRefappApplication {
 
             val healIndicators = healthRegistry.findAllHealthIndicatorNames()
 
-            val healthGauge = MultiGauge.builder("health_indicator").description("Status of a individual health check. Value is modeled after unix exit codes. 0=ok, the higher the number the more severe").register(registry)
-            healthGauge.register(healIndicators.map {
+            val healthGauge = MultiGauge.builder("health_indicator")
+                .description("Status of a individual health check. Value is modeled after unix exit codes. 0=ok, the higher the number the more severe")
+                .register(registry)
 
+            healthGauge.register(healIndicators.map {
                 val t: Tags = Tags.of("name", it)
-                MultiGauge.Row.of(t, it, ToDoubleFunction {name ->
-                    val c = healthRegistry.findHealthIndicator(name)
-                    val status = c.health().status
+                MultiGauge.Row.of(t, it, {name ->
+                    val healthIndicator = healthRegistry.findHealthIndicator(name)
+                    val status = healthIndicator.health().status
                     statuses[status.code] ?: 4.0
                 })
             })
@@ -123,7 +135,7 @@ class WebfluxRefappApplication {
 
     }
 
-    fun Set<Status>.aggregateStatus(): Status = SimpleStatusAggregator().getAggregateStatus(this)
+    fun Set<Status>.aggregateStatus(): Status = SimpleStatusAggregator(order.split(", ")).getAggregateStatus(this)
 
     /*
       Find all health indicator statuses, join on "." for composite contributors
@@ -208,3 +220,13 @@ class Controller(
     }
 }
 
+
+class YamlPropertyLoaderFactory : DefaultPropertySourceFactory() {
+    override fun createPropertySource(
+        name: String?,
+        resource: EncodedResource
+    ): org.springframework.core.env.PropertySource<*> {
+
+        return YamlPropertySourceLoader().load(resource.resource.filename, resource.resource).first()
+    }
+}
