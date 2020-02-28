@@ -10,5 +10,6 @@ THis is a playground to play around with spring reactor and various concepts and
  
 ## Issues
 
- - When I add spring-security-starter to classpath MDC fields are gone from access log
- - User MDC field is not propagated propperly
+ - When I add spring-security-starter to classpath MDC fields are gone from access log. Se example.log
+ - User MDC field is not propagated propperly. See mdc_access.log
+   - Remove spring-security-starter and the file WebSecurityConfig.kt to check this
