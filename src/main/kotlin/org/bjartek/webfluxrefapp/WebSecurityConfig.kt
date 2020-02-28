@@ -1,5 +1,6 @@
 package org.bjartek.webfluxrefapp
 
+
 import org.slf4j.MDC
 import org.springframework.context.annotation.Bean
 import org.springframework.http.HttpHeaders
@@ -82,3 +83,4 @@ class AuthManager : ReactiveAuthenticationManager {
         return Mono.justOrEmpty(res)
     }
 }
+

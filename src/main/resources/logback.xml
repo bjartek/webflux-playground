@@ -6,24 +6,20 @@
     <!-- Support log level change for Java Util Logging -->
     <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator" />
 
-  <appender name="ACCESS" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>logs/application.access</file>
-    <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-      <fileNamePattern>logs/application.%i.access.gz</fileNamePattern>
-      <minIndex>1</minIndex>
-      <maxIndex>2</maxIndex>
-    </rollingPolicy>
-    <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-      <maxFileSize>50MB</maxFileSize>
-    </triggeringPolicy>
+  <appender name="accessLog" class="ch.qos.logback.core.FileAppender">
+    <file>logs/access_log.access</file>
     <encoder>
       <pattern>%msg %X %n</pattern>
     </encoder>
   </appender>
 
   <appender name="async" class="ch.qos.logback.classic.AsyncAppender">
-    <appender-ref ref="ACCESS" />
+    <appender-ref ref="accessLog" />
   </appender>
+
+  <logger name="reactor.netty.http.server.AccessLog" level="INFO" additivity="false">
+    <appender-ref ref="async"/>
+  </logger>
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -70,10 +66,6 @@
     <logger name="AuditLogger" additivity="false">
         <level value="INFO"/>
         <appender-ref ref="AUDIT"/>
-    </logger>
-
-    <logger name="reactor.netty.http.server.AccessLog" level="INFO" additivity="false">
-      <appender-ref ref="async"/>
     </logger>
 
 </configuration>
