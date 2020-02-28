@@ -1,5 +1,6 @@
 package org.bjartek.webfluxrefapp
 
+import org.slf4j.MDC
 import org.springframework.context.annotation.Bean
 import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.ReactiveAuthenticationManager
@@ -57,6 +58,7 @@ class SecurityContextRepository(
             ?.takeIf { it.startsWith("Bearer ") }
             ?.substring(7))
         return authenticationManager.authenticate(auth).map {
+            MDC.put("User", it.principal.toString())
             SecurityContextImpl(it)
         }
     }
