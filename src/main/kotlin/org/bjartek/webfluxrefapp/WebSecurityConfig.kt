@@ -51,6 +51,7 @@ class SecurityContextRepository(
     }
 
     override fun load(exchange: ServerWebExchange?): Mono<SecurityContext> {
+        MDC.remove("User");
         val auth = UsernamePasswordAuthenticationToken("Bearer", exchange
             ?.request
             ?.headers

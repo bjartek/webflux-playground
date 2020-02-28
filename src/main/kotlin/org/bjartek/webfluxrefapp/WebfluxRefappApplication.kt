@@ -204,6 +204,24 @@ class Controller(
         }
     }
 
+    @GetMapping("auth/bar")
+    suspend fun authBar(): JsonNode? {
+        //User is set here
+        logger.info { "Auth bar begin" }
+        val result = client
+            .get()
+            .uri("/auth/foo")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+            .retrieve()
+            .bodyToMono<JsonNode>()
+            .log()
+            .awaitFirst()
+
+        //User is not set here
+        logger.info { "Auth bar ends" }
+        return result
+    }
+
     @GetMapping("foo")
     suspend fun foo(): Map<String, String> {
         return mapOf("foo" to "bar").also {
@@ -213,7 +231,7 @@ class Controller(
 
     @GetMapping("/bar")
     suspend fun bar(): JsonNode? {
-        logger.info { "bar" }
+        logger.info { "\n\nbar" }
         val result = client
                 .get()
                 .uri("/foo")
@@ -223,7 +241,7 @@ class Controller(
                 .log()
                 .awaitFirst()
 
-        logger.info { "bar" }
+        logger.info { "bar\n\n" }
         return result
     }
 }
