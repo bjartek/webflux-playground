@@ -27,6 +27,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.PropertySource
 import org.springframework.core.io.support.DefaultPropertySourceFactory
 import org.springframework.core.io.support.EncodedResource
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.GetMapping
@@ -196,6 +197,14 @@ val logger = KotlinLogging.logger {}
 class Controller(
         val client: WebClient
 ) {
+
+
+    @GetMapping("auth/foo")
+    suspend fun authFoo(): Map<String, String> {
+        return mapOf("foo" to "bar").also {
+            logger.info { it }
+        }
+    }
 
     @GetMapping("foo")
     suspend fun foo(): Map<String, String> {
