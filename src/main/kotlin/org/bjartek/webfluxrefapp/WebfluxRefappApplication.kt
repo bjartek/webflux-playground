@@ -19,14 +19,10 @@ import org.springframework.boot.actuate.health.NamedContributors
 import org.springframework.boot.actuate.health.SimpleStatusAggregator
 import org.springframework.boot.actuate.health.Status
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.env.YamlPropertySourceLoader
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.PropertySource
-import org.springframework.core.io.support.DefaultPropertySourceFactory
-import org.springframework.core.io.support.EncodedResource
 import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.GetMapping
@@ -37,7 +33,6 @@ import org.springframework.web.reactive.function.client.ExchangeFilterFunction
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
-import java.util.StringJoiner
 
 @Component
 class Test2: HealthIndicator {
@@ -220,13 +215,3 @@ class Controller(
     }
 }
 
-
-class YamlPropertyLoaderFactory : DefaultPropertySourceFactory() {
-    override fun createPropertySource(
-        name: String?,
-        resource: EncodedResource
-    ): org.springframework.core.env.PropertySource<*> {
-
-        return YamlPropertySourceLoader().load(resource.resource.filename, resource.resource).first()
-    }
-}
