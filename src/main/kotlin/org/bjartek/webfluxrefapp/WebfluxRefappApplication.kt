@@ -70,7 +70,7 @@ class Controller(
 
     @GetMapping("auth/foo")
     suspend fun authFoo(): Map<String, String> {
-        return withContext(TracingContextElement(ctx) + MDCContext()) {
+        return withContext( MDCContext()) {
             mapOf("authfoo" to "bar").also {
                 logger.info { it }
             }
@@ -79,7 +79,10 @@ class Controller(
 
     @GetMapping("auth/bar")
     suspend fun authBar(): JsonNode? {
-        return withContext(TracingContextElement(ctx) + MDCContext()) {
+
+        // I do not
+        //return withContext(TracingContextElement(ctx) + MDCContext()) {
+        return withContext(MDCContext()) {
             //User is set here
             logger.info { "Auth bar begin" }
             val result = client
@@ -88,11 +91,11 @@ class Controller(
                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 .retrieve()
                 .bodyToMono<JsonNode>()
-                .log()
+                .log() // User is not here
+                .doOnNext { logger.info("Next") }
                 .awaitFirst()
 
-            //User is not set here
-            logger.info { "Auth bar ends" }
+            logger.info { "Auth bar ends" } // User is here
             result
         }
     }
