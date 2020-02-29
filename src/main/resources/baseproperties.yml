@@ -8,11 +8,6 @@ spring:
        out-of-order: true
     jmx:
         enabled: false
-    sleuth:
-        log:
-           slf4j:
-                whitelisted-mdc-keys: User-Agent
-        propagation-keys: User-Agent
     cloud:
         discovery:
             client:

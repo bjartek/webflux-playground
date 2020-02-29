@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.env.YamlPropertySourceLoader
 import org.springframework.boot.runApplication
+import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.PropertySource
@@ -23,11 +24,8 @@ import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.reactive.function.client.ClientRequest
-import org.springframework.web.reactive.function.client.ExchangeFilterFunction
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
-import reactor.core.publisher.Mono
 import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext
 
@@ -44,19 +42,18 @@ fun main(args: Array<String>) {
 class WebfluxRefappApplication {
 
     @Bean
+    fun userAgentWebClientCustomizer( @Value("\${spring.application.name}") name: String) =
+        WebClientCustomizer {
+            it.defaultHeader("User-Agent", name)
+        }
+
+    @Bean
     fun webclient(
-        @Value("\${spring.application.name}") name: String,
         builder: WebClient.Builder
     ): WebClient {
-
         return builder
             .baseUrl("http://127.0.0.1:8080")
-            .filter(ExchangeFilterFunction.ofRequestProcessor { req ->
-                val cr = ClientRequest.from(req).headers {
-                    it["User-Agent"] = name
-                }.build()
-                Mono.just(cr)
-            }).build()
+            .build()
     }
 }
 
@@ -91,8 +88,7 @@ class Controller(
                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 .retrieve()
                 .bodyToMono<JsonNode>()
-                .log() // User is not here
-                .doOnNext { logger.info("Next") }
+                .doOnNext { logger.info("Next") } // User is not here
                 .awaitFirst()
 
             logger.info { "Auth bar ends" } // User is here
