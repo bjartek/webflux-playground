@@ -1,7 +1,7 @@
 management:
-   endpoint:
+    endpoint:
         health:
-           group:
+            group:
                 liveness:
                     include: ping,diskspace
                     show-details: always

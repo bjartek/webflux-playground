@@ -3,9 +3,9 @@ application:
     version: ${AURORA_VERSION:local-dev}
 spring:
     application:
-      name: ${APP_NAME:my}-${POD_NAMESPACE:app}
+        name: ${APP_NAME:my}-${POD_NAMESPACE:app}
     flyway:
-       out-of-order: true
+        out-of-order: true
     jmx:
         enabled: false
     cloud:

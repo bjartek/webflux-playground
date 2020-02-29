@@ -7,18 +7,16 @@ import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.coroutines.ThreadContextElement
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.slf4j.MDCContext
+import kotlinx.coroutines.slf4j.MDCContextMap
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
+import org.jboss.logging.MDC
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.env.YamlPropertySourceLoader
 import org.springframework.boot.runApplication
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.PropertySource
-import org.springframework.core.io.support.DefaultPropertySourceFactory
-import org.springframework.core.io.support.EncodedResource
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.GetMapping
@@ -38,11 +36,10 @@ fun main(args: Array<String>) {
 
 @SpringBootApplication
 @Configuration
-@PropertySource("classpath:baseproperties.yml", factory = YamlPropertyLoaderFactory::class)
 class WebfluxRefappApplication {
 
     @Bean
-    fun userAgentWebClientCustomizer( @Value("\${spring.application.name}") name: String) =
+    fun userAgentWebClientCustomizer(@Value("\${spring.application.name}") name: String) =
         WebClientCustomizer {
             it.defaultHeader("User-Agent", name)
         }
@@ -67,7 +64,8 @@ class Controller(
 
     @GetMapping("auth/foo")
     suspend fun authFoo(): Map<String, String> {
-        return withContext( MDCContext()) {
+        //return withContext(MDCContext()) {
+            return withContext(TracingContextElement(ctx) + MDCContext()) {
             mapOf("authfoo" to "bar").also {
                 logger.info { it }
             }
@@ -78,8 +76,8 @@ class Controller(
     suspend fun authBar(): JsonNode? {
 
         // I do not
-        //return withContext(TracingContextElement(ctx) + MDCContext()) {
-        return withContext(MDCContext()) {
+        return withContext(TracingContextElement(ctx) + MDCContext()) {
+      //  return withContext(MDCContext()) {
             //User is set here
             logger.info { "Auth bar begin" }
             val result = client
@@ -104,35 +102,8 @@ class Controller(
             }
         }
     }
-
-    @GetMapping("/bar")
-    suspend fun bar(): JsonNode? {
-        return withContext(TracingContextElement(ctx) + MDCContext()) {
-            logger.info { "\n\nbar" }
-            val result = client
-                .get()
-                .uri("/foo")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                .retrieve()
-                .bodyToMono<JsonNode>()
-                .log()
-                .awaitFirst()
-
-            logger.info { "bar\n\n" }
-            result
-        }
-    }
 }
 
-class YamlPropertyLoaderFactory : DefaultPropertySourceFactory() {
-    override fun createPropertySource(
-        name: String?,
-        resource: EncodedResource
-    ): org.springframework.core.env.PropertySource<*> {
-
-        return YamlPropertySourceLoader().load(resource.resource.filename, resource.resource).first()
-    }
-}
 
 typealias TraceContextHolder = CurrentTraceContext
 typealias TraceContextState = TraceContext?
