@@ -54,12 +54,14 @@ class SecurityContextRepository(
     override fun load(exchange: ServerWebExchange?): Mono<SecurityContext> {
         MDC.remove("User");
         logger.info("Unsetting user MDC")
+
         val auth = UsernamePasswordAuthenticationToken("Bearer", exchange
             ?.request
             ?.headers
             ?.getFirst(HttpHeaders.AUTHORIZATION)
             ?.takeIf { it.startsWith("Bearer ") }
             ?.substring(7))
+
         return authenticationManager.authenticate(auth).map {
             logger.info("Set user MDC")
             MDC.put("User", it.principal.toString())

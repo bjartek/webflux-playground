@@ -1,7 +1,13 @@
 package org.bjartek.webfluxrefapp
 
+import brave.Tracing
+import brave.propagation.CurrentTraceContext
+import brave.propagation.TraceContext
 import com.fasterxml.jackson.databind.JsonNode
+import kotlinx.coroutines.ThreadContextElement
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.slf4j.MDCContext
+import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -22,6 +28,8 @@ import org.springframework.web.reactive.function.client.ExchangeFilterFunction
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
+import kotlin.coroutines.AbstractCoroutineContextElement
+import kotlin.coroutines.CoroutineContext
 
 val logger = KotlinLogging.logger {}
 
@@ -56,55 +64,64 @@ class WebfluxRefappApplication {
 @RestController
 @RequestMapping("/")
 class Controller(
-    val client: WebClient
+    val client: WebClient,
+    val ctx: CurrentTraceContext
 ) {
 
     @GetMapping("auth/foo")
     suspend fun authFoo(): Map<String, String> {
-        return mapOf("authfoo" to "bar").also {
-            logger.info { it }
+        return withContext(TracingContextElement(ctx) + MDCContext()) {
+            mapOf("authfoo" to "bar").also {
+                logger.info { it }
+            }
         }
     }
 
     @GetMapping("auth/bar")
     suspend fun authBar(): JsonNode? {
-        //User is set here
-        logger.info { "Auth bar begin" }
-        val result = client
-            .get()
-            .uri("/auth/foo")
-            .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-            .retrieve()
-            .bodyToMono<JsonNode>()
-            .log()
-            .awaitFirst()
+        return withContext(TracingContextElement(ctx) + MDCContext()) {
+            //User is set here
+            logger.info { "Auth bar begin" }
+            val result = client
+                .get()
+                .uri("/auth/foo")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                .retrieve()
+                .bodyToMono<JsonNode>()
+                .log()
+                .awaitFirst()
 
-        //User is not set here
-        logger.info { "Auth bar ends" }
-        return result
+            //User is not set here
+            logger.info { "Auth bar ends" }
+            result
+        }
     }
 
     @GetMapping("foo")
     suspend fun foo(): Map<String, String> {
-        return mapOf("foo" to "bar").also {
-            logger.info { it }
+        return withContext(TracingContextElement(ctx) + MDCContext()) {
+            mapOf("foo" to "bar").also {
+                logger.info { it }
+            }
         }
     }
 
     @GetMapping("/bar")
     suspend fun bar(): JsonNode? {
-        logger.info { "\n\nbar" }
-        val result = client
-            .get()
-            .uri("/foo")
-            .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-            .retrieve()
-            .bodyToMono<JsonNode>()
-            .log()
-            .awaitFirst()
+        return withContext(TracingContextElement(ctx) + MDCContext()) {
+            logger.info { "\n\nbar" }
+            val result = client
+                .get()
+                .uri("/foo")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                .retrieve()
+                .bodyToMono<JsonNode>()
+                .log()
+                .awaitFirst()
 
-        logger.info { "bar\n\n" }
-        return result
+            logger.info { "bar\n\n" }
+            result
+        }
     }
 }
 
@@ -115,5 +132,30 @@ class YamlPropertyLoaderFactory : DefaultPropertySourceFactory() {
     ): org.springframework.core.env.PropertySource<*> {
 
         return YamlPropertySourceLoader().load(resource.resource.filename, resource.resource).first()
+    }
+}
+
+typealias TraceContextHolder = CurrentTraceContext
+typealias TraceContextState = TraceContext?
+
+class TracingContextElement(
+    private val traceContextHolder: TraceContextHolder = Tracing.current().currentTraceContext(),
+    private var context: TraceContextState = traceContextHolder.get()
+) : ThreadContextElement<CurrentTraceContext.Scope>, AbstractCoroutineContextElement(Key) {
+    companion object Key : CoroutineContext.Key<TracingContextElement>
+
+    override fun updateThreadContext(context: CoroutineContext): CurrentTraceContext.Scope {
+        return traceContextHolder.maybeScope(this.context)
+    }
+
+    override fun restoreThreadContext(context: CoroutineContext, oldState: CurrentTraceContext.Scope) {
+        // check to see if, during coroutine execution, the context was updated
+        traceContextHolder.get()?.let {
+            if (it != this.context) {
+                this.context = it
+            }
+        }
+
+        oldState.close()
     }
 }
