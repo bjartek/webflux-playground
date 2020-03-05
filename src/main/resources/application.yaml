@@ -10,3 +10,10 @@ management:
                     include: test,test2
                     show-details: always
                     show-component: always
+
+spring:
+    sleuth:
+        local-keys: User,User-Agent
+        log:
+            slf4j:
+                whitelisted-mdc-keys: User,User-Agent

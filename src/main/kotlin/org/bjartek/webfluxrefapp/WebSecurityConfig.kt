@@ -1,6 +1,7 @@
 package org.bjartek.webfluxrefapp
 
 
+import brave.propagation.ExtraFieldPropagation
 import org.slf4j.MDC
 import org.springframework.context.annotation.Bean
 import org.springframework.http.HttpHeaders
@@ -54,7 +55,6 @@ class SecurityContextRepository(
     override fun load(exchange: ServerWebExchange?): Mono<SecurityContext> {
         MDC.remove("User");
         MDC.remove("User-Agent");
-//        logger.info("Unsetting user/user-agent MDC ")
 
         val headers = exchange
             ?.request
@@ -66,11 +66,12 @@ class SecurityContextRepository(
             ?.substring(7))
 
         return authenticationManager.authenticate(auth).map {
+            ExtraFieldPropagation.set("User", it.principal.toString())
             MDC.put("User", it.principal.toString())
             headers?.getFirst("User-Agent")?.let { agent ->
+                ExtraFieldPropagation.set("User-Agent", agent)
                 MDC.put("User-Agent", agent)
             }
-    //        logger.info("Set user and user-agent MDC")
             SecurityContextImpl(it)
         }
     }
@@ -82,7 +83,7 @@ class AuthManager : ReactiveAuthenticationManager {
 
         val res = authentication?.credentials?.let {
             UsernamePasswordAuthenticationToken(
-                "User", it, listOf(
+                it, it, listOf(
                     SimpleGrantedAuthority("USER")
                 )
             )
