@@ -1,27 +1,36 @@
 package org.bjartek.webfluxrefapp
 
-import brave.propagation.B3Propagation
-import brave.propagation.ExtraFieldPropagation
 import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.coroutines.reactive.awaitFirst
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.actuate.trace.http.HttpTrace
+import org.springframework.boot.actuate.trace.http.InMemoryHttpTraceRepository
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.Ordered
 import org.springframework.http.HttpHeaders
+import org.springframework.stereotype.Component
+import org.springframework.stereotype.Repository
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import org.springframework.web.server.ServerWebExchange
+import org.springframework.web.server.WebFilter
+import org.springframework.web.server.WebFilterChain
+import reactor.core.publisher.Mono
+import java.security.Principal
+import java.time.Duration
+import java.time.Instant
 
-val logger = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger {}
 
-// start with -Dreactor.netty.http.server.accessLogEnabled=true for access log
 fun main(args: Array<String>) {
     runApplication<WebfluxRefappApplication>(*args)
 }
@@ -78,3 +87,4 @@ class Controller(
     @GetMapping("anonymous")
     suspend fun anonymous() = "Anonymous"
 }
+

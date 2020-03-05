@@ -13,7 +13,11 @@ spring:
             client:
                 composite-indicator:
                     enabled: false
-
+    sleuth:
+        local-keys: User,User-Agent
+        log:
+            slf4j:
+                whitelisted-mdc-keys: User,User-Agent
 management:
     server:
         port: ${MANAGEMENT_HTTP_PORT:8081}

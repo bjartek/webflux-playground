@@ -8,6 +8,10 @@ import org.springframework.core.annotation.Order
 import org.springframework.core.io.support.DefaultPropertySourceFactory
 import org.springframework.core.io.support.EncodedResource
 
+/**
+ * If you want to share some common properties in a starter this is a way to do it with reading them
+ * from a yaml file
+ */
 @Configuration
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @PropertySource("classpath:baseproperties.yml", factory = YamlPropertyLoaderFactory::class)
