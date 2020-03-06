@@ -22,7 +22,6 @@ class YamlPropertyLoaderFactory : DefaultPropertySourceFactory() {
         name: String?,
         resource: EncodedResource
     ): org.springframework.core.env.PropertySource<*> {
-
         return YamlPropertySourceLoader().load(resource.resource.filename, resource.resource).first()
     }
 }

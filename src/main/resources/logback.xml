@@ -6,12 +6,6 @@
   <!-- Support log level change for Java Util Logging -->
   <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator" />
 
-  <appender name="accessLog" class="ch.qos.logback.core.FileAppender">
-    <file>logs/application.access</file>
-    <encoder>
-      <pattern>%msg %X %n</pattern>
-    </encoder>
-  </appender>
 
   <appender name="accessLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <file>logs/application.access</file>
@@ -29,7 +23,7 @@
     </encoder>
   </appender>
 
-  <logger name="WebFluxAccessLogger" level="INFO" additivity="false">
+  <logger name="WebfluxAccessLogger" level="INFO" additivity="false">
     <appender-ref ref="accessLog" />
   </logger>
 

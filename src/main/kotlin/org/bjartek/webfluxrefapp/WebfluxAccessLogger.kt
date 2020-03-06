@@ -10,6 +10,7 @@ import reactor.core.publisher.Mono
 import java.security.Principal
 import java.time.Duration
 import java.time.Instant
+import kotlin.reflect.jvm.internal.impl.load.kotlin.JvmType
 
 private val logger = KotlinLogging.logger{}
 
@@ -33,9 +34,13 @@ private val logger = KotlinLogging.logger{}
 class AuroraAccessLogFilter() : WebFilter, Ordered {
 
     override fun filter(exchange: ServerWebExchange, chain: WebFilterChain): Mono<Void> {
-        return exchange.getPrincipal<Principal>().flatMap {
-            filterWithPrincipal(exchange, chain, it)
-        }.switchIfEmpty(filterWithPrincipal(exchange, chain, null))
+        return  exchange.getPrincipal<Principal>().cast(Object::class.java).switchIfEmpty(Mono.just(Object()))
+           .flatMap {
+               val p: Principal? = if(it is Principal) it  else null
+            filterWithPrincipal(exchange, chain, p)
+        }
+
+
     }
 
     private fun filterWithPrincipal(exchange: ServerWebExchange, chain: WebFilterChain, principal: Principal?): Mono<Void> {
@@ -48,6 +53,7 @@ class AuroraAccessLogFilter() : WebFilter, Ordered {
         val started = Instant.now()
 
         exchange.response.beforeCommit {
+
             val request = exchange.request
             val response = exchange.response
 
@@ -56,9 +62,12 @@ class AuroraAccessLogFilter() : WebFilter, Ordered {
 
             val duration = Duration.between(started, Instant.now())
 
-            val contentLength = response.headers.contentLength
+            val contentLength = 0
+          //  val contentLength = response.headers.contentLength
             accessLog.info("""$host - ${principal?.name ?: "-"} [${started}] "${request.method} ${request.path} HTTP/1.1" ${response.statusCode?.value()} $contentLength duration=${duration.toMillis()}ms """)
+
             Mono.empty()
+
         }
 
         return chain.filter(exchange)

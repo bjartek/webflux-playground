@@ -79,9 +79,11 @@ class Controller(
             .doOnNext {
                 logger.info("Next")
             } // User is not here
-            .awaitFirst().also {
-                logger.info { "Auth bar ends"}
-            }
+            .awaitFirst()
+
+
+          //      logger.info { "Auth bar ends"}
+          //  return result
     }
 
     @GetMapping("anonymous")
