@@ -1,15 +1,12 @@
 # Playground for webflux
 
-THis is a playground to play around with spring reactor and various concepts and how to translate them into the reactive world. 
+This is a playground to play around with spring reactor and various concepts and how to translate them into the reactive world. 
 
- - Logging with MDC fields
- - Access logging
- - Lading properties from a yaml file (will be used in a spring boot starter)
- - Exposing prometheus metrics for health and for individual health indicators
- - Spring security authentication using Bearer token. 
- 
-## Issues
+ - Logging should include MDC/Security information in coroutine and reactor logging
+ - Spring security to get a user from Bearer token
+ - Exposing a health metric with the overall status of health checks
+ - Exposing a health_indicator for each individual health check
+ - Access logging WebFilter since Nettys access log does not pick up MDC fields
+ - Loading a yaml file in a starter to enabled shared properties for a corporation
 
- - When I add spring-security-starter to classpath MDC fields are gone from access log. Se example.log
- - User MDC field is not propagated propperly. See mdc_access.log
-   - Remove spring-security-starter and the file WebSecurityConfig.kt to check this
+
