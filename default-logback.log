@@ -1,4 +1,0 @@
-2020-02-29 15:56:26.300  INFO [,034838d932e9f303,034838d932e9f303,false] 6687 --- [oundedElastic-1] o.b.w.WebfluxRefappApplication           : Auth bar begin
-2020-02-29 15:56:26.448  INFO [,034838d932e9f303,8fd6b2f90964737b,false] 6687 --- [oundedElastic-1] o.b.w.WebfluxRefappApplication           : {authfoo=bar}
-2020-02-29 15:56:26.520  INFO [,034838d932e9f303,034838d932e9f303,false] 6687 --- [or-http-epoll-4] o.b.w.WebfluxRefappApplication           : Next
-2020-02-29 15:56:26.521  INFO [,034838d932e9f303,034838d932e9f303,false] 6687 --- [or-http-epoll-4] o.b.w.WebfluxRefappApplication           : Auth bar ends

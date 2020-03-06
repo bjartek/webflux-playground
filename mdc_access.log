@@ -1,9 +1,0 @@
-[127.0.0.1 - - [28/Feb/2020:21:00:32 +0100] "GET /foo HTTP/1.1" 200 13 8080 23 ms] traceId=177690984f715f25, spanId=f69e0c2dcd0717a9, spanExportable=false, X-Span-Export=false, X-B3-SpanId=f69e0c2dcd0717a9, X-B3-ParentSpanId=177690984f715f25, User-Agent=my-app, X-B3-TraceId=177690984f715f25, parentId=177690984f715f25 
-[127.0.0.1 - - [28/Feb/2020:21:00:32 +0100] "GET /bar HTTP/1.1" 200 13 8080 333 ms]  
-[127.0.0.1 - - [28/Feb/2020:21:00:58 +0100] "GET /foo HTTP/1.1" 200 13 8080 3 ms] traceId=0aca1d346bd43de2, spanId=0aca1d346bd43de2, spanExportable=false, X-Span-Export=false, X-B3-SpanId=0aca1d346bd43de2, User-Agent=HTTPie/1.0.3, X-B3-TraceId=0aca1d346bd43de2 
-[127.0.0.1 - - [28/Feb/2020:21:01:04 +0100] "GET /foo HTTP/1.1" 200 13 8080 3 ms] traceId=e50bdc4f5c8bef95, spanId=5a5a11589eb37f47, spanExportable=false, X-Span-Export=false, X-B3-SpanId=5a5a11589eb37f47, X-B3-ParentSpanId=e50bdc4f5c8bef95, User-Agent=my-app, X-B3-TraceId=e50bdc4f5c8bef95, parentId=e50bdc4f5c8bef95 
-[127.0.0.1 - - [28/Feb/2020:21:01:04 +0100] "GET /bar HTTP/1.1" 200 13 8080 13 ms]  
-127.0.0.1 - - [28/Feb/2020:21:01:32 +0100] "GET /foo HTTP/1.1" 200 13 8080 31 ms traceId=fba388f08c6c7163, spanId=15d162942323e3cf, spanExportable=false, X-Span-Export=false, X-B3-SpanId=15d162942323e3cf, X-B3-ParentSpanId=fba388f08c6c7163, User-Agent=my-app, X-B3-TraceId=fba388f08c6c7163, parentId=fba388f08c6c7163 
-127.0.0.1 - - [28/Feb/2020:21:01:31 +0100] "GET /bar HTTP/1.1" 200 13 8080 410 ms  
-127.0.0.1 - - [28/Feb/2020:21:02:19 +0100] "GET /foo HTTP/1.1" 200 13 8080 57 ms MDC is missing, Spring-security is on classpath
-127.0.0.1 - - [28/Feb/2020:21:02:19 +0100] "GET /bar HTTP/1.1" 200 13 8080 333 ms  
