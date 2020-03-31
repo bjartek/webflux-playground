@@ -43,6 +43,9 @@ class WebSecurityConfig(
 }
 
 
+const val USER_FIELD = "User"
+
+
 @Component
 class SecurityContextRepository(
     val authenticationManager: ReactiveAuthenticationManager
@@ -53,8 +56,7 @@ class SecurityContextRepository(
     }
 
     override fun load(exchange: ServerWebExchange?): Mono<SecurityContext> {
-        MDC.remove("User");
-        MDC.remove("User-Agent");
+        MDC.remove(USER_FIELD);
 
         val headers = exchange
             ?.request
@@ -68,14 +70,14 @@ class SecurityContextRepository(
         return authenticationManager.authenticate(auth).map {
             ExtraFieldPropagation.set("User", it.principal.toString())
             MDC.put("User", it.principal.toString())
-            headers?.getFirst("User-Agent")?.let { agent ->
-                ExtraFieldPropagation.set("User-Agent", agent)
-                MDC.put("User-Agent", agent)
-            }
+
             SecurityContextImpl(it)
         }
     }
+
 }
+
+
 
 @Component
 class AuthManager : ReactiveAuthenticationManager {

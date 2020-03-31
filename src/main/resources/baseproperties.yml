@@ -14,10 +14,10 @@ spring:
                 composite-indicator:
                     enabled: false
     sleuth:
-        local-keys: User,User-Agent
+        local-keys: User,User-Agent,Korrelasjonsid,Meldingsid,Klientid
         log:
             slf4j:
-                whitelisted-mdc-keys: User,User-Agent
+                whitelisted-mdc-keys: User,User-Agent,Korrelasjonsid,Meldingsid,Klientid
 management:
     server:
         port: ${MANAGEMENT_HTTP_PORT:8081}

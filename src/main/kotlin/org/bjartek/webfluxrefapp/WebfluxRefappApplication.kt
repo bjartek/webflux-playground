@@ -1,5 +1,6 @@
 package org.bjartek.webfluxrefapp
 
+import brave.propagation.ExtraFieldPropagation
 import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.coroutines.reactive.awaitFirst
 import mu.KotlinLogging
@@ -28,6 +29,7 @@ import reactor.core.publisher.Mono
 import java.security.Principal
 import java.time.Duration
 import java.time.Instant
+import java.util.*
 
 private val logger = KotlinLogging.logger {}
 
@@ -40,9 +42,11 @@ fun main(args: Array<String>) {
 class WebfluxRefappApplication {
 
     @Bean
-    fun userAgentWebClientCustomizer(@Value("\${spring.application.name}") name: String) =
+    fun userAgentWebClientCustomizer(@Value("\${spring.application.name}") name: String)  =
         WebClientCustomizer {
-            it.defaultHeader("User-Agent", name)
+            val fields = ExtraFieldPropagation.getAll()
+            it.defaultHeader(USER_AGENT_FIELD, name)
+            it.defaultHeader(KLIENTID_FIELD, name)
         }
 
     @Bean
@@ -70,10 +74,12 @@ class Controller(
     @GetMapping("auth/bar")
     suspend fun authBar(): JsonNode? {
         logger.info { "Auth bar begin" }
-        return client
+        val result = client
             .get()
             .uri("/auth/foo")
             .header(HttpHeaders.AUTHORIZATION, "Bearer token2")
+            .header(MELDINGID_FIELD, ExtraFieldPropagation.get(MELDINGID_FIELD))
+            .header(KORRELASJONSID_FIELD, ExtraFieldPropagation.get(KORRELASJONSID_FIELD))
             .retrieve()
             .bodyToMono<JsonNode>()
             .doOnNext {
@@ -82,8 +88,8 @@ class Controller(
             .awaitFirst()
 
 
-          //      logger.info { "Auth bar ends"}
-          //  return result
+                logger.info { "Auth bar ends"}
+            return result
     }
 
     @GetMapping("anonymous")
