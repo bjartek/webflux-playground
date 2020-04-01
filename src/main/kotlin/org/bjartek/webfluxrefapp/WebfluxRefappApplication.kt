@@ -5,31 +5,20 @@ import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.coroutines.reactive.awaitFirst
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.actuate.trace.http.HttpTrace
-import org.springframework.boot.actuate.trace.http.InMemoryHttpTraceRepository
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.core.Ordered
 import org.springframework.http.HttpHeaders
-import org.springframework.stereotype.Component
-import org.springframework.stereotype.Repository
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.reactive.function.client.ClientRequest
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
-import org.springframework.web.server.ServerWebExchange
-import org.springframework.web.server.WebFilter
-import org.springframework.web.server.WebFilterChain
-import reactor.core.publisher.Mono
-import java.security.Principal
-import java.time.Duration
-import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
 
@@ -42,11 +31,17 @@ fun main(args: Array<String>) {
 class WebfluxRefappApplication {
 
     @Bean
-    fun userAgentWebClientCustomizer(@Value("\${spring.application.name}") name: String)  =
+    fun userAgentWebClientCustomizer(@Value("\${spring.application.name}") name: String) =
         WebClientCustomizer {
-            val fields = ExtraFieldPropagation.getAll()
             it.defaultHeader(USER_AGENT_FIELD, name)
             it.defaultHeader(KLIENTID_FIELD, name)
+            it.filter { clientRequest, next ->
+                val r = ClientRequest.from(clientRequest)
+                    .header(MELDINGID_FIELD, UUID.randomUUID().toString())
+                    .header(KORRELASJONSID_FIELD, ExtraFieldPropagation.get(KORRELASJONSID_FIELD))
+                    .build()
+                next.exchange(r)
+            }
         }
 
     @Bean
@@ -78,8 +73,6 @@ class Controller(
             .get()
             .uri("/auth/foo")
             .header(HttpHeaders.AUTHORIZATION, "Bearer token2")
-            .header(MELDINGID_FIELD, ExtraFieldPropagation.get(MELDINGID_FIELD))
-            .header(KORRELASJONSID_FIELD, ExtraFieldPropagation.get(KORRELASJONSID_FIELD))
             .retrieve()
             .bodyToMono<JsonNode>()
             .doOnNext {
@@ -88,8 +81,8 @@ class Controller(
             .awaitFirst()
 
 
-                logger.info { "Auth bar ends"}
-            return result
+        logger.info { "Auth bar ends" }
+        return result
     }
 
     @GetMapping("anonymous")
