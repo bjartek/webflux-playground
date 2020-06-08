@@ -31,20 +31,6 @@ fun main(args: Array<String>) {
 class WebfluxRefappApplication {
 
     @Bean
-    fun userAgentWebClientCustomizer(@Value("\${spring.application.name}") name: String) =
-        WebClientCustomizer {
-            it.defaultHeader(USER_AGENT_FIELD, name)
-            it.defaultHeader(KLIENTID_FIELD, name)
-            it.filter { clientRequest, next ->
-                val r = ClientRequest.from(clientRequest)
-                    .header(MELDINGID_FIELD, UUID.randomUUID().toString())
-                    .header(KORRELASJONSID_FIELD, ExtraFieldPropagation.get(KORRELASJONSID_FIELD))
-                    .build()
-                next.exchange(r)
-            }
-        }
-
-    @Bean
     fun webclient(
         builder: WebClient.Builder
     ): WebClient {

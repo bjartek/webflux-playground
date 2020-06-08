@@ -1,12 +1,3 @@
-management:
-    endpoint:
-        health:
-            group:
-                liveness:
-                    include: ping,diskspace
-                    show-details: always
-                    show-component: always
-                readiness:
-                    include: test,test2
-                    show-details: always
-                    show-component: always
+aurora.webflux.header:
+    webclient.interceptor.enabled: true
+    span.interceptor.enabled: true
