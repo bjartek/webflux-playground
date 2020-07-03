@@ -38,7 +38,7 @@ class WebSecurityConfig(
             .authorizeExchange()
             .pathMatchers("/auth/**").authenticated()
             .anyExchange().permitAll()
-            .and().build();
+            .and().build()
     }
 }
 
