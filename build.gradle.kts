@@ -1,31 +1,24 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-	id("org.springframework.boot") version "2.2.4.RELEASE"
+	id("org.springframework.boot") version "2.3.1.RELEASE"
 	id("io.spring.dependency-management") version "1.0.9.RELEASE"
-	kotlin("jvm") version "1.3.61"
-	kotlin("plugin.spring") version "1.3.61"
+	kotlin("jvm") version "1.3.72"
+	kotlin("plugin.spring") version "1.3.72"
 }
 
 group = "org.bjartek.webfluxrefapp"
 version = "0.0.1-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_11
 
-val developmentOnly by configurations.creating
-configurations {
-	runtimeClasspath {
-		extendsFrom(developmentOnly)
-	}
-}
-
 repositories {
 	mavenCentral()
 }
 
-extra["springCloudVersion"] = "Hoxton.SR1"
+extra["springCloudVersion"] = "Hoxton.SR6"
 
 dependencies {
-	implementation("io.micrometer:micrometer-registry-prometheus:1.3.5")
+  runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 	implementation("io.github.microutils:kotlin-logging:1.7.8")
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
@@ -57,6 +50,6 @@ tasks.withType<Test> {
 tasks.withType<KotlinCompile> {
 	kotlinOptions {
 		freeCompilerArgs = listOf("-Xjsr305=strict")
-		jvmTarget = "1.8"
+		jvmTarget = "11"
 	}
 }
